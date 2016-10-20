@@ -254,7 +254,7 @@ var scatter = function(data) {
 var jql = $('.jql').html()
 MP.api.jql(jql).done(function(resp) {
   var data = resp[0]
-  scatter(data) 
+  scatter(_.toArray(data))
 });
 
 </script>
