@@ -162,7 +162,7 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
 
 // setup x 
 var xValue = function(d) { return d.engagement;}, // data -> value
-    xScale = d3.scale.log().range([0, width]), // value -> display
+    xScale = d3.scale.linear().range([0, width]), // value -> display
     xMap = function(d) { return xScale(xValue(d));}, // data -> display
     xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
@@ -189,7 +189,6 @@ var tooltip = d3.select("body").append("div")
     .style("opacity", 0);
 
 var scatter = function(data) {
-  debugger
       // transform the data object to something 
       // change string (from CSV) into number format
     
@@ -229,7 +228,7 @@ var scatter = function(data) {
           .attr("r", 3.5)
           .attr("cx", xMap)
           .attr("cy", yMap)
-          .style("fill", function(d) {  debugger;return color(cValue(d));}) 
+          .style("fill", function(d) { return color(cValue(d)); }) 
           .on("mouseover", function(d) {
               tooltip.transition()
                    .duration(200)
