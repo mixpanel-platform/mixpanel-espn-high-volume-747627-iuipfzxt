@@ -209,7 +209,7 @@ MP.api.jql(jql).done(function(resp) {
       .attr("r", 3.5)
       .attr("cx", xMap)
       .attr("cy", yMap)
-      .style("fill", function(d) { return color(cValue(d));}) 
+      .style("fill", function(d) {  debugger;return color(cValue(d));}) 
       .on("mouseover", function(d) {
           tooltip.transition()
                .duration(200)
