@@ -169,6 +169,7 @@ var tooltip = d3.select("body").append("div")
 var jql = $('.jql').html()
 MP.api.jql(jql).done(function(resp) {
   debugger
+  var data = resp[0]
     d3.json(data, function(er, data) {
       // transform the data object to something 
       // change string (from CSV) into number format
