@@ -50,7 +50,7 @@ var engagementScore = function(event){
 }
 
 var slot_bucket = function(event){
-  var res = event.properties['Referrer Slot']
+  var res = event.properties['Referrer Position']
   if (Number(res) > 10 && Number(res) <= 15) {
     res = '11-15'
   } else if (Number(res) > 15) {
@@ -173,6 +173,7 @@ var yValue = function(d) { return (d.retained / d.total * 100).toFixed();}, // d
     yAxis = d3.svg.axis().scale(yScale).orient("left");
 
 // setup fill color
+// set up color for a specific pattern
 var cValue = function(d) { return d.slot || 0;},
     color = d3.scale.category10();
 
@@ -245,6 +246,8 @@ var scatter = function(data) {
           });
     
       // draw legend
+      
+      //sort legend
       var legend = svg.selectAll(".legend")
           .data(color.domain())
         .enter().append("g")
@@ -265,6 +268,8 @@ var scatter = function(data) {
           .attr("dy", ".35em")
           .style("text-anchor", "end")
           .text(function(d) { return d;})
+          
+      // append average(?)
     }
 
 // load data
