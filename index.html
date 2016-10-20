@@ -141,7 +141,7 @@ var homepage = 'Home Page'
     var res = []
     _.each(item.value, val => {
       val.engagement = Math.log(val.engagement)
-      res.push(val)
+      if (val.total > 1000) res.push(val)
     })
     return res
   })
