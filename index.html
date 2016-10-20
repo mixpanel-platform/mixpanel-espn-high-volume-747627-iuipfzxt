@@ -112,6 +112,7 @@
       _.each(accs, acc =>
         _.each(acc, (valObj, title)=> {
           res[title] = res[title] || {engagement: 0, retained: 0, total: 0}
+          res[title]['title'] = title
           res[title]['engagement'] = res[title]['engagement'] + valObj.engagement
           res[title]['retained'] = res[title]['retained'] + valObj.retained
           res[title]['total'] = res[title]['total'] + valObj.total || valObj.total
@@ -137,19 +138,19 @@ var margin = {top: 20, right: 20, bottom: 30, left: 40},
  */ 
 
 // setup x 
-var xValue = function(d) { return d.Calories;}, // data -> value
+var xValue = function(d) { return d.engagement;}, // data -> value
     xScale = d3.scale.linear().range([0, width]), // value -> display
     xMap = function(d) { return xScale(xValue(d));}, // data -> display
     xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
 // setup y
-var yValue = function(d) { return d["Protein (g)"];}, // data -> value
+var yValue = function(d) { return (d.retained / d.total * 100).toFixed();}, // data -> value
     yScale = d3.scale.linear().range([height, 0]), // value -> display
     yMap = function(d) { return yScale(yValue(d));}, // data -> display
     yAxis = d3.svg.axis().scale(yScale).orient("left");
 
 // setup fill color
-var cValue = function(d) { return d.Manufacturer;},
+var cValue = function(d) { return d.slot || 0;},
     color = d3.scale.category10();
 
 // add the graph canvas to the body of the webpage
@@ -166,9 +167,10 @@ var tooltip = d3.select("body").append("div")
 
 // load data
 var jql = $('.jql').html()
-MP.api.jql(jql).done(function(data) {
+MP.api.jql(jql).done(function(resp) {
   debugger
-
+  var data = resp[0]
+  // transform the data object to something 
   // change string (from CSV) into number format
   data.forEach(function(d) {
     d.Calories = +d.Calories;
@@ -190,7 +192,7 @@ MP.api.jql(jql).done(function(data) {
       .attr("x", width)
       .attr("y", -6)
       .style("text-anchor", "end")
-      .text("Calories");
+      .text("Engagement");
 
   // y-axis
   svg.append("g")
@@ -202,7 +204,7 @@ MP.api.jql(jql).done(function(data) {
       .attr("y", 6)
       .attr("dy", ".71em")
       .style("text-anchor", "end")
-      .text("Protein (g)");
+      .text("% of Retention");
 
   // draw dots
   svg.selectAll(".dot")
@@ -217,7 +219,7 @@ MP.api.jql(jql).done(function(data) {
           tooltip.transition()
                .duration(200)
                .style("opacity", .9);
-          tooltip.html(d["Cereal Name"] + "<br/> (" + xValue(d) 
+          tooltip.html(d.title + "<br/> (" + xValue(d) 
 	        + ", " + yValue(d) + ")")
                .style("left", (d3.event.pageX + 5) + "px")
                .style("top", (d3.event.pageY - 28) + "px");
