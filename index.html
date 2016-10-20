@@ -50,7 +50,7 @@ var engagementScore = function(event){
 }
 
 var slot_bucket = function(event){
-  var res = event.properties['Referrer Position']
+  var res = event.properties['Referrer Slot']
   if (Number(res) > 10 && Number(res) <= 15) {
     res = '11-15'
   } else if (Number(res) > 15) {
