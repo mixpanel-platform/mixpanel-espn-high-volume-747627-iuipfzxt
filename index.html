@@ -33,96 +33,101 @@
 <!--</style>-->
 <body>
 <script class="jql">
-  var engagementScore = function(event){
-    var pts = 0
-    switch(event.name){
-      case 'Video Started':
-        pts = 5
-        break;
-      case 'Page View':
-        pts = 3
-        break;
-      case 'Social Share':
-        pts = 1
-        break;
+var engagementScore = function(event){
+  var pts = 0
+  switch(event.name){
+    case 'Video Started':
+      pts = 5
+      break;
+    case 'Page View':
+      pts = 3
+      break;
+    case 'Social Share':
+      pts = 1
+      break;
+  }
+  return pts
+}
+
+
+function main() {
+var homepage = 'Home Page'
+  return Events({
+    from_date: '2016-10-19',
+    to_date:   '2016-10-20',
+    event_selectors: [
+        {event: 'Video Started', selector:'defined (properties["Story Headline"])'},
+        {event: 'Page View', selector:'defined (properties["Story Headline"])'},
+        {event: 'Social Share', selector:'defined (properties["Story Headline"])'
+        }]
+  })
+  .groupByUser((state, events) => {
+    state = state ||{
+      previous_content: [],
+      current_content: {
+        title: undefined,
+        engagement: 0,
+        retention: 0,
+      },
+      previous_url: undefined
     }
-    return pts
-  }
-  
-  
-  function main() {
-  var homepage = 'Home Page'
-    return Events({
-      from_date: '2016-10-19',
-      to_date:   '2016-10-20',
-      event_selectors: [
-          {event: 'Video Started', selector:'defined (properties["Story Headline"])'},
-          {event: 'Page View', selector:'defined (properties["Story Headline"])'},
-          {event: 'Social Share', selector:'defined (properties["Story Headline"])'
-          }]
-    })
-    .groupByUser((state, events) => {
-      state = state ||{
-        previous_content: [],
-        current_content: {
-          title: undefined,
-          engagement: 0,
-          retention: 0,
-        },
-        previous_url: undefined
-      }
-      
-      _.each(events, event => {
-        // If I came from the chain or from the home page
-        if (event.properties.$referrer == state.previous_url || event.properties['Referring Page'] == homepage) {
-          if(!state.current_content.title || event.properties['Story Headline'] == state.current_content.title) {
-            state.current_content.title = event.properties['Story Headline']
-            state.current_content.engagement = engagementScore(event)
-          }
-          state.current_content.retention += 1
-          state.previous_url = event.properties.$current_url
-        } else {
-          // buggy, covers all cases that are not the above
-          if(state.current_content.title){
-            state.previous_content.push(state.current_content)
-            state.current_content = {
-                title: undefined,
-                engagement: 0,
-                retention: 0,
-              }
-          }
+    
+    _.each(events, event => {
+      // If I came from the chain or from the home page
+      if (event.properties.$referrer == state.previous_url || event.properties['Referring Page'] == homepage) {
+        if(!state.current_content.title || event.properties['Story Headline'] == state.current_content.title) {
+          state.current_content.title = event.properties['Story Headline']
+          state.current_content.engagement = engagementScore(event)
+          state.current_content.slot = event.properties['Referrer Slot']
         }
-      })
-      return state
+        state.current_content.retention += 1
+        state.previous_url = event.properties.$current_url
+      } else {
+        // buggy, covers all cases that are not the above
+        if(state.current_content.title){
+          state.previous_content.push(state.current_content)
+          state.current_content = {
+              title: undefined,
+              engagement: 0,
+              retention: 0,
+            }
+        }
+      }
     })
-    .filter(item => item.value.previous_content.length > 2)
-    .groupBy([], (accs, users) => {
-      var res = {}
-      _.each(users, user => {
-        _.each(user.value.previous_content, article => {
-          res[article.title] = res[article.title] || {}
-          res[article.title]['engagement'] = res[article.title]['engagement'] + article.engagement || article.engagement
-          // retention needs to be a % of whether I am over 3 or not
-          var retained = (article.retention > 2) ? 1 : 0 
-          res[article.title]['retained'] = res[article.title]['retained'] + retained || retained
-          res[article.title]['total'] = res[article.title]['total'] + 1 || 1
+    return state
+  })
+  .filter(item => item.value.previous_content.length)
+  .groupBy([], (accs, users) => {
+    var res = {}
+    _.each(users, user => {
+      _.each(user.value.previous_content, article => {
+        res[article.title + String(article.slot)] = res[article.title + String(article.slot)] || {}
+        var currenRes = res[article.title + String(article.slot)]
+        currenRes.engagement = currenRes.engagement + article.engagement || article.engagement
+        // retention needs to be a % of whether I am over 3 or not
+        var retained = (article.retention > 2) ? 1 : 0 
+        currenRes.retained = currenRes.retained + retained || retained
+        currenRes.total = currenRes.total + 1 || 1
+        currenRes.slot = article.slot
+        currenRes.title = article.title
+      })
+    })
+    
+    _.each(accs, acc =>
+      _.each(acc, (valObj, title)=> {
+        res[title] = res[title] || {engagement: 0, retained: 0, total: 0}
+        res[title]['title'] = valObj.title
+        res[title]['engagement'] = res[title]['engagement'] + valObj.engagement
+        res[title]['retained'] = res[title]['retained'] + valObj.retained
+        res[title]['total'] = res[title]['total'] + valObj.total || valObj.total
+        res[title]['slot'] = valObj.slot
         })
-      })
-      
-      _.each(accs, acc =>
-        _.each(acc, (valObj, title)=> {
-          res[title] = res[title] || {engagement: 0, retained: 0, total: 0}
-          res[title]['title'] = title
-          res[title]['engagement'] = res[title]['engagement'] + valObj.engagement
-          res[title]['retained'] = res[title]['retained'] + valObj.retained
-          res[title]['total'] = res[title]['total'] + valObj.total || valObj.total
-          })
-      )
-      
-      return res
-    })
-    .map(item=> item.value)
-  }
+    )
+    
+    return res
+  })
+  .map(item=> item.value)
+}
 </script>
 
 <script>
