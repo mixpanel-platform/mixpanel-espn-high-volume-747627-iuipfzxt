@@ -172,11 +172,6 @@ MP.api.jql(jql).done(function(resp) {
   var data = resp[0]
   // transform the data object to something 
   // change string (from CSV) into number format
-  data.forEach(function(d) {
-    d.Calories = +d.Calories;
-    d["Protein (g)"] = +d["Protein (g)"];
-//    console.log(d);
-  });
 
   // don't want dots overlapping axis, so add in buffer to data domain
   xScale.domain([d3.min(data, xValue)-1, d3.max(data, xValue)+1]);
