@@ -140,7 +140,7 @@ var homepage = 'Home Page'
   .map(item => {
     var res = []
     _.each(item.value, val => {
-      val.engagement = Math.log(val.engagement)
+      val.engagement = val.engagement
       if (val.total > 1000) res.push(val)
     })
     return res
