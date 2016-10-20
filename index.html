@@ -170,12 +170,8 @@ var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
-// load data
-var jql = $('.jql').html()
-MP.api.jql(jql).done(function(resp) {
+var scatter = function(data) {
   debugger
-  var data = resp[0]
-    d3.json(data, function(er, data) {
       // transform the data object to something 
       // change string (from CSV) into number format
     
@@ -252,7 +248,13 @@ MP.api.jql(jql).done(function(resp) {
           .attr("dy", ".35em")
           .style("text-anchor", "end")
           .text(function(d) { return d;})
-    })
+    }
+
+// load data
+var jql = $('.jql').html()
+MP.api.jql(jql).done(function(resp) {
+  var data = resp[0]
+  scatter(data) 
 });
 
 </script>
