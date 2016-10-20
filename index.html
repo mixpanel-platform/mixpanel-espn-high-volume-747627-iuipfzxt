@@ -85,7 +85,7 @@ var homepage = 'Home Page'
       // If I came from the chain or from the home page
       
       // social shares are getting recorded
-      if ((event.properties.$referrer == state.previous_url || event.properties['Referring Page'] == homepage) && event.properties.['Referral Slot']) {
+      if ((event.properties.$referrer == state.previous_url || event.properties['Referring Page'] == homepage) && event.properties['Referral Slot']) {
         if(!state.current_content.title || event.properties['Story Headline'] == state.current_content.title) {
           state.current_content.title = event.properties['Story Headline']
           state.current_content.engagement = engagementScore(event)
