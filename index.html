@@ -49,6 +49,15 @@ var engagementScore = function(event){
   return pts
 }
 
+var slot_bucket = function(event){
+  var res = event.properties['Referrer Slot']
+  if (Number(res) > 10 && Number(res) <= 15) {
+    res = '11-15'
+  } else if (Number(res) > 15) {
+    res = '15+'
+  }
+  return res
+}
 
 function main() {
 var homepage = 'Home Page'
@@ -74,11 +83,13 @@ var homepage = 'Home Page'
     
     _.each(events, event => {
       // If I came from the chain or from the home page
+      
+      // social shares are getting recorded
       if (event.properties.$referrer == state.previous_url || event.properties['Referring Page'] == homepage) {
         if(!state.current_content.title || event.properties['Story Headline'] == state.current_content.title) {
           state.current_content.title = event.properties['Story Headline']
           state.current_content.engagement = engagementScore(event)
-          state.current_content.slot = event.properties['Referrer Slot']
+          state.current_content.slot = slot_bucket(event)
         }
         state.current_content.retention += 1
         state.previous_url = event.properties.$current_url
@@ -96,7 +107,7 @@ var homepage = 'Home Page'
     })
     return state
   })
-  .filter(item => item.value.previous_content.length)
+  .filter(item => item.value.previous_content.length > 2)
   .groupBy([], (accs, users) => {
     var res = {}
     _.each(users, user => {
@@ -126,7 +137,14 @@ var homepage = 'Home Page'
     
     return res
   })
-  .map(item=> item.value)
+  .map(item => {
+    var res = []
+    _.each(item.value, val => {
+      val.engagement = Math.log(val.engagement)
+      res.push(val)
+    })
+    return res
+  })
 }
 </script>
 
